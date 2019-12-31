@@ -1,10 +1,186 @@
 ---
-title: "index"
+title: "Disco Zoo:An exploration of optimal move-making"
 author: "Erica Ryan"
-date: "December 28, 2019"
+date: "Started: December 28, 2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
 ```
+If you're not familiar with the app Disco Zoo, you're probably in the majority. From the [wikipedia page](https://en.wikipedia.org/wiki/Disco_Zoo), Disco Zoo is a zoo simulation video game developed by Milkbag Games and published by NimbleBit for iOS and Android. It was published into the App Store on 21 February 2014 for iOS. 
+
+In the game, you go on rescue missions to save animals and expand your zoo. On each rescue mission, you are given a 5x5 grid, and between 1 and 3 animals to find. Each animal has an associated pattern, and you have 10 tries to find all the animals. Here is a screenshot from the game to help visualize:
+
+![The grid for a rescue mission at the farm](StartScreen.PNG){ width=75% }
+
+I want to build a tool that can guide move making based on all possible sets of arrangements. There's a lot of other functionality that I could build into this as well. For example, it could read in your current zoo population and provide guidance based on which animals you lack or available space requests. There are also other unlockable elements of the game that could be coded in. For the moment being, I'm going to stay simple and just do a version of this code for the base game.
+```{python}
+import numpy as np
+#Dim is the dimension of the grid. Later on it could be fun to change it.
+#But for now, the standard grid is 5x5.
+dim=5
+```
+Next I'm going to set a class for the animals. It will contain the patterns dictionary which will hold all of the information regarding the value, pattern, and rescue location of the animals. This will ensure consistency in the class, and leave room for error handling down the line.
+
+It gives each object of class Animal a name, a value, a pattern, and a location. There is also a function called findall which finds all of the possible positions the animal's pattern can take in a grid of the specified dimension.
+
+One cool thing I've spent some time thinking about here is the value option for the animals. Originally I planned on doing a linear 1-2-3 value scheme to indicate the rarity of the animal, and hence how much priority it should recieve.
+This makes it difficult when stacking possible outcomes later (if a square takes a value of 2, is it because there is an animal in the square of value 2, or because there are two animals of value 1 occupying the same square (and hence, the grid should not be considered as valid)). 
+I've currently (12/30/19) settled on a value scheme of 3-4-5 and will continue to consider other options as I work on this project.
+```{python}
+class Animals:
+    def __init__(self, name):
+        Patterns = {'sheep' : [5, np.array([[1,1,1,1]]), 'farm'],
+            'pig' : [5, np.array([[1,1],[1,1]]), 'farm'],
+            'rabbit' : [5, np.array([[1],[1],[1],[1]]), 'farm'],
+            'horse' : [4, np.array([[1],[1],[1]]), 'farm'],
+            'cow' : [4, np.array([[1,1,1]]), 'farm'],
+            'unicorn' : [5, np.array([[1,0,0],[0,1,1]]), 'farm'],
+            'kangaroo' : [3, np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]), 'outback'],
+            'platypus' : [3, np.array([[1,1,0],[0,1,1]]), 'outback'],
+            'crocodile' : [3, np.array([[1,1,1,1]]), 'outback'],
+            'koala' : [4, np.array([[1,1],[0,1]]), 'outback'],
+            'cockatoo' : [4, np.array([[1,0],[0,1],[0,1]]), 'outback'],
+            'tiddalik' : [5, np.array([[0,1,0],[1,0,1]]), 'outback'],
+            'zebra' : [3, np.array([[0,1,0],[1,0,1],[0,1,0]]), 'savanna'],
+            'hippo' : [3, np.array([[1,0,1],[0,0,0],[1,0,1]]), 'savanna'],
+            'giraffe' : [3, np.array([[1],[1],[1],[1]]), 'savanna'],
+            'lion' : [4, np.array([[1,1,1]]), 'savanna'],
+            'elephant' : [4, np.array([[1,1],[1,0]]), 'savanna'],
+            'gryphon' : [5, np.array([[1,0,1],[0,1,0]]), 'savanna'],
+            'bear' : [3, np.array([[1,1],[0,1],[0,1],[0,1]]), 'northern'],
+            'skunk' : [3, np.array([[0,1,1],[1,1,0]]), 'northern'],
+            'beaver' : [3, np.array([[0,0,1],[1,1,0],[0,0,1]]), 'northern'],
+            'moose' : [4, np.array([[1,0,1],[0,1,0]]), 'northern'],
+            'fox' : [4, np.array([[1,1,0],[0,0,1]]), 'northern'],
+            'sasquatch' : [5, np.array([[1],[1]]), 'northern'],
+            'penguin' : [3, np.array([[0,1,0],[0,1,0],[1,0,1]]), 'polar'],
+            'seal' : [3, np.array([[1,0,0,0],[0,1,0,1],[0,0,1,0]]), 'polar'],
+            'muskox' : [3, np.array([[1,1,0],[1,0,1]]), 'polar'],
+            'polarbear' : [4, np.array([[1,0,1],[0,0,1]]), 'polar'],
+            'walrus' : [4, np.array([[1,0,0],[0,1,1]]), 'polar'],
+            'yeti' : [5, np.array([[1],[0],[1]]), 'polar'],
+            'monkey' : [3, np.array([[1,0,1,0],[0,1,0,1]]), 'jungle'],
+            'toucan' : [3, np.array([[0,1],[1,0],[0,1],[0,1]]), 'jungle'],
+            'gorilla' : [3, np.array([[1,0,1],[1,0,1]]), 'jungle'],
+            'panda' : [4, np.array([[0,0,1],[1,0,0],[0,0,1]]), 'jungle'],
+            'tiger' : [4, np.array([[1,0,1,1]]), 'jungle'],
+            'pheonix' : [5, np.array([[1,0,0],[0,0,0],[0,0,1]]), 'jungle'],
+            'diplodocus' : [3, np.array([[1,0,0],[0,1,1],[0,1,0]]), 'jurassic'],
+            'stegosaurus' : [3, np.array([[0,1,1,0],[1,0,0,1]]), 'jurassic'],
+            'raptor' : [3, np.array([[1,1,0],[0,1,0],[0,0,1]]), 'jurassic'],
+            'trex' : [4, np.array([[1,0],[0,0],[1,1]]), 'jurassic'],
+            'triceratops' : [4, np.array([[1,0,0],[0,0,1],[1,0,0]]), 'jurassic'],
+            'dragon' : [5, np.array([[1,0,0],[0,0,1]]), 'jurassic'],
+            'woolyrhino' : [3, np.array([[0,0,1,0],[1,0,0,1],[0,1,0,0]]), 'iceage'],
+            'giantsloth' : [3, np.array([[1,0,0],[0,0,1],[1,0,1]]), 'iceage'],
+            'direwolf' : [3, np.array([[0,1,0,0],[1,0,0,1],[0,1,0,0]]), 'iceage'],
+            'sabertooth' : [4, np.array([[1,0,0],[0,0,1],[0,1,0]]), 'iceage'],
+            'mammoth' : [4, np.array([[0,1,0],[1,0,0],[0,0,1]]), 'iceage'],
+            'akhult' : [5, np.array([[0,0,1],[1,0,0],[0,0,1]]), 'iceage'],
+            'raccoon' : [3, np.array([[1,0,1,0],[1,0,0,1]]), 'city'],
+            'pigeon' : [3, np.array([[1,0,0],[0,1,0],[0,1,1]]), 'city'],
+            'rat' : [3, np.array([[1,1,0,0],[0,1,0,1]]), 'city'],
+            'squirrel' : [4, np.array([[0,0,1],[1,0,0],[0,1,0]]), 'city'],
+            'opossum' : [4, np.array([[1,0,0],[1,0,1]]), 'city'],
+            'sewerturtle' : [5, np.array([[1,1]]), 'city'],
+            'goat' : [3, np.array([[1,0,0],[1,1,1]]), 'mountain'],
+            'cougar' : [3, np.array([[1,0,0],[0,1,0],[1,0,1]]), 'mountain'],
+            'elk' : [3, np.array([[1,0,1],[0,1,1]]), 'mountain'],
+            'eagle' : [4, np.array([[1,0],[1,0],[0,1]]), 'mountain'],
+            'coyote' : [4, np.array([[1,1,0],[0,0,1]]), 'mountain'],
+            'aatxe' : [5, np.array([[0,0,1],[1,0,0]]), 'mountain'],
+            'moonkey' : [3, np.array([[1,0,0],[1,0,1],[0,0,1]]), 'moon'],
+            'lunartick' : [3, np.array([[0,1,0],[0,0,0],[0,1,0],[1,0,1]]), 'moon'],
+            'tribble' : [3, np.array([[0,1,0],[1,1,1]]), 'moon'],
+            'moonicorn' : [4, np.array([[1,0],[1,1]]), 'moon'],
+            'lunamoth' : [4, np.array([[1,0,1],[0,0,0],[0,1,0]]), 'moon'],
+            'jaderabbit' : [5, np.array([[1,0],[0,0],[0,1]]), 'moon'],
+            'rock' : [3, np.array([[1,1],[1,1]]), 'mars'],
+            'marsmot' : [3, np.array([[0,1],[0,1],[1,1]]), 'mars'],
+            'marsmoset' : [3, np.array([[1,0,1],[0,0,1],[0,1,0]]), 'mars'],
+            'rover' : [4, np.array([[0,1,0],[1,0,1]]), 'mars'],
+            'martian' : [4, np.array([[1,0,1],[0,1,0]]), 'mars'],
+            'marsmallow' : [5, np.array([[1],[0],[1]]), 'mars'],
+            'discobucks' : [5, np.array([[1]]), 'NA']}
+
+        self.name=name
+        self.value=Patterns[name][0]
+        self.pattern=Patterns[name][1]
+        self.location=Patterns[name][2]
+
+        
+    def findall(self):
+        a = np.multiply(self.value, self.pattern)
+        rows = a.shape[0]
+        cols = a.shape[1]
+        
+        rd = dim-rows+1
+        cd = dim-cols+1
+        ls = []
+        
+        for i in range(cd):
+            if i == 0 :
+                precol = np.zeros((dim, cd-1))
+            elif i == cd:
+                postcol = np.zeros((dim, cd-1))
+            else:
+                precol = np.zeros((dim, cd-1-i))
+                postcol = np.zeros((dim, i))
+        
+            for j in range(rd) :
+                if j == 0:
+                    prerow = np.zeros((rd-1, cols))
+                    col = np.append(prerow, a, axis = 0)
+                elif j == rd:
+                    postrow = np.zeros((rd-1, cols))
+                    col = np.append(a, postrow, axis=0)
+                else:
+                    prerow = np.zeros((rd-1-j, cols))
+                    postrow = np.zeros((j, cols))
+                    col = np.concatenate((prerow, a, postrow), axis=0)
+            
+                if i == 0:
+                    grid = np.append(precol, col, axis=1)
+                elif i == cd:
+                    grid = np.append(col, postcol, axis=1)
+                else:
+                    grid = np.concatenate((precol, col, postcol), axis=1)
+                ls.append(grid) 
+        return(ls)     
+```
+For a sanity check:
+```{python}
+animal1 = Animals('unicorn')
+print(animal1.name, animal1.value, animal1.pattern, animal1.location)
+
+test=animal1.findall()
+print("there are", len(test), "possible locations for a", animal1.name)
+print(test[0])
+```
+Everything is looking good. So now we want to feed in a pair of animals we are given.
+```{python}
+AnimalList = ['elk', 'goat']
+
+allpat = []
+highlist = []
+for k in AnimalList:
+    allpat.append((k, Animals(k).findall()))
+    highlist.append(Animals(k).value)
+    
+highest=max(highlist)
+```
+
+```{python}
+combined = []
+for l in range(len(AnimalList)):
+    if len(AnimalList)<= 1:
+        print("Too Few Animals")
+    elif l == 0:
+        for m in range(len(allpat[l][1])):
+            for n in range(len(allpat[l+1][1])):
+                combined.append(np.add(allpat[l][1][m],allpat[l+1][1][n]))
+```
+
