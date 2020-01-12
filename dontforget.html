@@ -1,0 +1,165 @@
+class Animals:
+    def __init__(self, name):
+        Patterns = {'sheep' : [3, np.array([[1,1,1,1]]), 'farm'],
+            'pig' : [3, np.array([[1,1],[1,1]]), 'farm'],
+            'rabbit' : [3, np.array([[1],[1],[1],[1]]), 'farm'],
+            'horse' : [4, np.array([[1],[1],[1]]), 'farm'],
+            'cow' : [4, np.array([[1,1,1]]), 'farm'],
+            'unicorn' : [5, np.array([[1,0,0],[0,1,1]]), 'farm'],
+            'kangaroo' : [3, np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]), 'outback'],
+            'platypus' : [3, np.array([[1,1,0],[0,1,1]]), 'outback'],
+            'crocodile' : [3, np.array([[1,1,1,1]]), 'outback'],
+            'koala' : [4, np.array([[1,1],[0,1]]), 'outback'],
+            'cockatoo' : [4, np.array([[1,0],[0,1],[0,1]]), 'outback'],
+            'tiddalik' : [5, np.array([[0,1,0],[1,0,1]]), 'outback'],
+            'zebra' : [3, np.array([[0,1,0],[1,0,1],[0,1,0]]), 'savanna'],
+            'hippo' : [3, np.array([[1,0,1],[0,0,0],[1,0,1]]), 'savanna'],
+            'giraffe' : [3, np.array([[1],[1],[1],[1]]), 'savanna'],
+            'lion' : [4, np.array([[1,1,1]]), 'savanna'],
+            'elephant' : [4, np.array([[1,1],[1,0]]), 'savanna'],
+            'gryphon' : [5, np.array([[1,0,1],[0,1,0]]), 'savanna'],
+            'bear' : [3, np.array([[1,1],[0,1],[0,1],[0,1]]), 'northern'],
+            'skunk' : [3, np.array([[0,1,1],[1,1,0]]), 'northern'],
+            'beaver' : [3, np.array([[0,0,1],[1,1,0],[0,0,1]]), 'northern'],
+            'moose' : [4, np.array([[1,0,1],[0,1,0]]), 'northern'],
+            'fox' : [4, np.array([[1,1,0],[0,0,1]]), 'northern'],
+            'sasquatch' : [5, np.array([[1],[1]]), 'northern'],
+            'penguin' : [3, np.array([[0,1,0],[0,1,0],[1,0,1]]), 'polar'],
+            'seal' : [3, np.array([[1,0,0,0],[0,1,0,1],[0,0,1,0]]), 'polar'],
+            'muskox' : [3, np.array([[1,1,0],[1,0,1]]), 'polar'],
+            'polarbear' : [4, np.array([[1,0,1],[0,0,1]]), 'polar'],
+            'walrus' : [4, np.array([[1,0,0],[0,1,1]]), 'polar'],
+            'yeti' : [5, np.array([[1],[0],[1]]), 'polar'],
+            'monkey' : [3, np.array([[1,0,1,0],[0,1,0,1]]), 'jungle'],
+            'toucan' : [3, np.array([[0,1],[1,0],[0,1],[0,1]]), 'jungle'],
+            'gorilla' : [3, np.array([[1,0,1],[1,0,1]]), 'jungle'],
+            'panda' : [4, np.array([[0,0,1],[1,0,0],[0,0,1]]), 'jungle'],
+            'tiger' : [4, np.array([[1,0,1,1]]), 'jungle'],
+            'pheonix' : [5, np.array([[1,0,0],[0,0,0],[0,0,1]]), 'jungle'],
+            'diplodocus' : [3, np.array([[1,0,0],[0,1,1],[0,1,0]]), 'jurassic'],
+            'stegosaurus' : [3, np.array([[0,1,1,0],[1,0,0,1]]), 'jurassic'],
+            'raptor' : [3, np.array([[1,1,0],[0,1,0],[0,0,1]]), 'jurassic'],
+            'trex' : [4, np.array([[1,0],[0,0],[1,1]]), 'jurassic'],
+            'triceratops' : [4, np.array([[1,0,0],[0,0,1],[1,0,0]]), 'jurassic'],
+            'dragon' : [5, np.array([[1,0,0],[0,0,1]]), 'jurassic'],
+            'woolyrhino' : [3, np.array([[0,0,1,0],[1,0,0,1],[0,1,0,0]]), 'iceage'],
+            'giantsloth' : [3, np.array([[1,0,0],[0,0,1],[1,0,1]]), 'iceage'],
+            'direwolf' : [3, np.array([[0,1,0,0],[1,0,0,1],[0,1,0,0]]), 'iceage'],
+            'sabertooth' : [4, np.array([[1,0,0],[0,0,1],[0,1,0]]), 'iceage'],
+            'mammoth' : [4, np.array([[0,1,0],[1,0,0],[0,0,1]]), 'iceage'],
+            'akhult' : [5, np.array([[0,0,1],[1,0,0],[0,0,1]]), 'iceage'],
+            'raccoon' : [3, np.array([[1,0,1,0],[1,0,0,1]]), 'city'],
+            'pigeon' : [3, np.array([[1,0,0],[0,1,0],[0,1,1]]), 'city'],
+            'rat' : [3, np.array([[1,1,0,0],[0,1,0,1]]), 'city'],
+            'squirrel' : [4, np.array([[0,0,1],[1,0,0],[0,1,0]]), 'city'],
+            'opossum' : [4, np.array([[1,0,0],[1,0,1]]), 'city'],
+            'sewerturtle' : [5, np.array([[1,1]]), 'city'],
+            'goat' : [3, np.array([[1,0,0],[1,1,1]]), 'mountain'],
+            'cougar' : [3, np.array([[1,0,0],[0,1,0],[1,0,1]]), 'mountain'],
+            'elk' : [3, np.array([[1,0,1],[0,1,1]]), 'mountain'],
+            'eagle' : [4, np.array([[1,0],[1,0],[0,1]]), 'mountain'],
+            'coyote' : [4, np.array([[1,1,0],[0,0,1]]), 'mountain'],
+            'aatxe' : [5, np.array([[0,0,1],[1,0,0]]), 'mountain'],
+            'moonkey' : [3, np.array([[1,0,0],[1,0,1],[0,0,1]]), 'moon'],
+            'lunartick' : [3, np.array([[0,1,0],[0,0,0],[0,1,0],[1,0,1]]), 'moon'],
+            'tribble' : [3, np.array([[0,1,0],[1,1,1]]), 'moon'],
+            'moonicorn' : [4, np.array([[1,0],[1,1]]), 'moon'],
+            'lunamoth' : [4, np.array([[1,0,1],[0,0,0],[0,1,0]]), 'moon'],
+            'jaderabbit' : [5, np.array([[1,0],[0,0],[0,1]]), 'moon'],
+            'rock' : [3, np.array([[1,1],[1,1]]), 'mars'],
+            'marsmot' : [3, np.array([[0,1],[0,1],[1,1]]), 'mars'],
+            'marsmoset' : [3, np.array([[1,0,1],[0,0,1],[0,1,0]]), 'mars'],
+            'rover' : [4, np.array([[0,1,0],[1,0,1]]), 'mars'],
+            'martian' : [4, np.array([[1,0,1],[0,1,0]]), 'mars'],
+            'marsmallow' : [5, np.array([[1],[0],[1]]), 'mars'],
+            'discobucks' : [5, np.array([[1]]), 'NA']}
+
+        self.name=name
+        self.value=Patterns[name][0]
+        self.pattern=Patterns[name][1]
+        self.location=Patterns[name][2]
+
+        
+    def findall(self):
+        a = self.pattern
+        rows = a.shape[0]
+        cols = a.shape[1]
+        
+        rd = dim-rows+1
+        cd = dim-cols+1
+        ls = []
+        
+        for i in range(cd):
+            if i == 0 :
+                precol = np.zeros((dim, cd-1))
+            elif i == cd:
+                postcol = np.zeros((dim, cd-1))
+            else:
+                precol = np.zeros((dim, cd-1-i))
+                postcol = np.zeros((dim, i))
+        
+            for j in range(rd) :
+                if j == 0:
+                    prerow = np.zeros((rd-1, cols))
+                    col = np.append(prerow, a, axis = 0)
+                elif j == rd:
+                    postrow = np.zeros((rd-1, cols))
+                    col = np.append(a, postrow, axis=0)
+                else:
+                    prerow = np.zeros((rd-1-j, cols))
+                    postrow = np.zeros((j, cols))
+                    col = np.concatenate((prerow, a, postrow), axis=0)
+            
+                if i == 0:
+                    grid = np.append(precol, col, axis=1)
+                elif i == cd:
+                    grid = np.append(col, postcol, axis=1)
+                else:
+                    grid = np.concatenate((precol, col, postcol), axis=1)
+                ls.append(grid) 
+        return(ls)     
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        allpat = []
+highlist = []
+for k in AnimalList:
+    allpat.append((k, Animals(k).findall()))
+    highlist.append(Animals(k).value)
+    
+highest=max(highlist)
+
+
+
+
+combined = []
+for l in range(len(AnimalList)):
+    if len(AnimalList)<= 1:
+        print("Too Few Animals")
+    elif l == 0:
+        for m in range(len(allpat[l][1])):
+            for n in range(len(allpat[l+1][1])):
+                combined.append(np.add(allpat[l][1][m],allpat[l+1][1][n]))
+                
+                
+                
+                
+                possible = []
+for p in range(len(combined)):
+    if np.max(combined[p])<=highest:
+        possible.append(combined[p])
+        
+        
+        
+        for q in range(len(possible)-1):
+    if q == 0:
+        comb = possible[q]
+    else:
+        comb = comb + possible[q]
