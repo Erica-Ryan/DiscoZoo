@@ -343,51 +343,109 @@ print(&quot;there are&quot;, len(test), &quot;possible locations for a&quot;, an
 ##  ['' '' 'un' '' '']
 ##  ['' '' '' 'un' 'un']]</code></pre>
 <p>Everything is looking good. So now we want to feed in a pair of animals we are given.</p>
-<pre class="python"><code>AnimalList = ['elk', 'goat']
+<pre class="python"><code>AnimalList = ['elk', 'goat']</code></pre>
+<pre class="python"><code>#First I'm going to make a list that takes in the animal list and makes a new list
+#first thing is the animal, second thing is all possible locations of that animal
 
 allpat = []
 for k in AnimalList:
-    allpat.append((k, Animals(k).findall()))</code></pre>
-<pre class="python"><code>combined = []
+    allpat.append((k, Animals(k).findall()))
+
+    
+#next I'm going to make a list of all the combinations of the patterns in allpat
+#I'm not really going to care how many of them are actually feasible for the moment
+
+combined = []
 for l in range(len(AnimalList)):
     if len(AnimalList)&lt;= 1:
         print(&quot;Too Few Animals&quot;)
     elif l == 0:
         for m in range(len(allpat[l][1])):
             for n in range(len(allpat[l+1][1])):
-                combined.append(np.core.defchararray.add(allpat[l][1][m],allpat[l+1][1][n]))</code></pre>
-<pre class="python"><code>possible = []
+                combined.append(np.core.defchararray.add(allpat[l][1][m],allpat[l+1][1][n]))
 
+
+#Now I'm going to care about possible options. If more than two animal keys are in the same square, it is removed.
+
+ogpossible = []
 for p in range(len(combined)):
     maxls = []
     for q in range(dim):
         maxls.append(len(max(combined[p][q], key=len)))
     if max(maxls)&lt;=2:
-        possible.append(combined[p])</code></pre>
-<pre class="python"><code>for r in range(len(possible)):
-    if r == 0 :
-        master = possible[r]
-    else:
-        master = np.core.defchararray.add(master, possible[r])</code></pre>
-<pre class="python"><code>master1 = np.empty((dim,dim))
-for s in range(dim):
-    for t in range(dim):
-        master1[s][t]=len(master[s][t])/2
-print(master1)</code></pre>
-<pre><code>## [[14. 14. 23.  8. 10.]
-##  [18. 30. 49. 35. 23.]
-##  [18. 26. 40. 26. 18.]
-##  [23. 30. 45. 27. 18.]
-##  [10. 24. 37. 28. 14.]]</code></pre>
-<pre class="python"><code>x = len(possible)
-half = master1 * (1/x)
-print(half)</code></pre>
-<pre><code>## [[0.18421053 0.18421053 0.30263158 0.10526316 0.13157895]
-##  [0.23684211 0.39473684 0.64473684 0.46052632 0.30263158]
-##  [0.23684211 0.34210526 0.52631579 0.34210526 0.23684211]
-##  [0.30263158 0.39473684 0.59210526 0.35526316 0.23684211]
-##  [0.13157895 0.31578947 0.48684211 0.36842105 0.18421053]]</code></pre>
+        ogpossible.append(combined[p])</code></pre>
+<pre class="python"><code>#Now I want to build a master list that gives me the number of possible options.
+def numopts(possibleopts):
+    for r in range(len(possibleopts)):
+        if r == 0 :
+            newopts = possibleopts[r]
+        else:
+            newopts = np.core.defchararray.add(newopts, possibleopts[r])
+        
+    newoptscount = np.empty((dim,dim))
+    for s in range(dim):
+        for t in range(dim):
+            newoptscount[s][t]=len(newopts[s][t])/2
+    return(newoptscount)
+
+
+def percents(possibleopts, newoptscount):
+    x = len(possibleopts)
+    half = newoptscount * (1/x)
+    return(half) </code></pre>
+<pre class="python"><code>#need to rethink this one. 
+#UPDATE. Rethought it.  Jazzy.
+
+def animalspecific(options, anlist):
+    output = []
+    for animal in range(len(anlist)):
+        newoptscount = np.zeros((dim,dim))
+        an = Animals(anlist[animal]).abbr
+    
+        for option in range(len(options)):
+            for rowz in range(dim):
+                for colz in range(dim):
+                    if options[option][rowz][colz] == an:
+                        newoptscount[rowz][colz] = newoptscount[rowz][colz]+1
+        
+        output.append([Animals(anlist[animal]).name, newoptscount])
+    return(output)</code></pre>
+<pre class="python"><code>originalpossible = numopts(ogpossible)
+percentages = percents(ogpossible, originalpossible)
+test = animalspecific(ogpossible, AnimalList)
+test</code></pre>
+<pre><code>## [['elk', array([[ 7.,  8., 17.,  8., 10.],
+##        [ 4., 12., 26., 23., 17.],
+##        [ 4.,  9., 20., 17., 14.],
+##        [ 6., 10., 22., 18., 14.],
+##        [ 0.,  6., 12., 13.,  7.]])], ['goat', array([[ 7.,  6.,  6.,  0.,  0.],
+##        [14., 18., 23., 12.,  6.],
+##        [14., 17., 20.,  9.,  4.],
+##        [17., 20., 23.,  9.,  4.],
+##        [10., 18., 25., 15.,  7.]])]]</code></pre>
+<pre class="python"><code>#This was a first attempt and I maybe spent half an hour thinking about it and realized it wouldn't really have all that much value but I feel bad just deleting it. Thank goodness for Dev code. It'll disappear before prod.
+
+#def animalspecificDEAD(everypattern):
+#    animalspecific = []    
+#    
+#    for an in range(len(everypattern)):
+#        for item in range(len(everypattern[an][1])):
+#            if item == 0:
+#                temparray = everypattern[an][1][item]
+#            else:
+#                temparray = np.core.defchararray.add(temparray, everypattern[an][1][item])
+#                
+#        tempcount = np.empty((dim,dim))
+#        for rows in range(dim):
+#            for cols in range(dim):
+#                tempcount[rows][cols]=len(temparray[rows][cols])/2
+#                    
+#        animalspecific.append([an, temparray, tempcount])
+#    return(animalspecific)
+#
+#animalspecificpattern = animalspecific(allpat)</code></pre>
 <p>1/11/20 - I’ve just done a pretty major code overhaul, and I’ll work on adding some context in the near future. Meantime, I’m thinking a lot about how to proceed from here. I’ve reached a point where I can produce the base probabilities, but that’s on the assumption that Disco Zoo is actually randomly assigning where these animals are placed. I also haven’t figured out the best way to incorporate the values of the animals. Maybe a weighting scheme like expected value? If I’m going to try to do expected value, I need to feel more confident in my current value scheme. Is a unicorn really only worth 3 sheep?</p>
+<p>2/17/20 - More Overhaul and man did I not bother to look at my notes from my previous overhaul! Good programming practice right? I made a neat function called animal specific that I’m hoping will be useful for understanding the true value of the squares. I now have a function that will generate the total number of options per square, and the total percentages. Oh man I should make my percentages function able to take in a list that would really make that dynamic. Gonna do that next time if I REMEMBER TO READ MY NOTES CMON</p>
 
 
 
